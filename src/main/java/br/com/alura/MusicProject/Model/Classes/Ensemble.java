@@ -77,7 +77,6 @@ public class Ensemble {
 
     @Override
     public String toString() {
-
         return String.format("""
                 ==============================
                 Nome: %s

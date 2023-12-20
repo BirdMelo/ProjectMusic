@@ -1,6 +1,7 @@
 package br.com.alura.MusicProject.Main;
 
 
+import br.com.alura.MusicProject.Model.Classes.Album;
 import br.com.alura.MusicProject.Model.Classes.Artist;
 import br.com.alura.MusicProject.Model.Classes.Ensemble;
 import br.com.alura.MusicProject.Model.Classes.Music;
@@ -10,6 +11,8 @@ import br.com.alura.MusicProject.Model.Enums.TypesOfGroup;
 import br.com.alura.MusicProject.Repository.MusicRepository;
 import br.com.alura.MusicProject.Service.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Main {
@@ -17,6 +20,7 @@ public class Main {
     private final MusicRepository repository;
     public Service in = new Service();
     public Main (MusicRepository repository){this.repository = repository;}
+
     public void showMenu(){
         int option;
         do {
@@ -24,6 +28,7 @@ public class Main {
                     ==============================================
                     1   - Registrar Artista solo
                     2   - Registrar Grupo
+                    3   - Registrar Álbum
                                     
                     0   - Sair do programa
                     
@@ -36,9 +41,12 @@ public class Main {
                     break;
                 case 2:
                     newEnsemble();
+                case 3:
+                    newAlbum();
             }
         }while (option != 0);
     }
+
     //SOLO ARTIST:
     private void addSoloArtist(){
         Artist artist = newArtist();
@@ -46,7 +54,7 @@ public class Main {
         System.out.print("Estilo musical: ");
         var style = WRITE.nextLine();
 
-        Ensemble ensemble = new Ensemble(artist.getName(), Styles.styles(style),TypesOfGroup.SOLO);
+        Ensemble ensemble = new Ensemble(artist.getName(), Styles.styles(style), TypesOfGroup.SOLO);
         List<Artist> artists = new ArrayList<>();
         artists.add(artist);
         ensemble.setMembers(artists);
@@ -56,33 +64,34 @@ public class Main {
 
         repository.save(ensemble);
 
-        Optional<Ensemble> foundArtist = repository.findByNameContainingIgnoreCase(artist.getName());
-        foundArtist.ifPresent(value -> repository.save(value));
+        Optional<Ensemble> foundGroup = repository.findByNameContainingIgnoreCase(ensemble.getName());
+        foundGroup.ifPresent(repository::save);
     }
     //ENSEMBLE:
     private void newEnsemble(){
         System.out.print("nome: ");
         var name = WRITE.nextLine();
-
+        Styles styles;
         while (true) {
             System.out.print("Estilo da banda: ");
             var style = WRITE.nextLine();
             if (in.inStyle(style)){
-                Styles styles = Styles.styles(style);
+                styles = Styles.styles(style);
                 break;
             }else {
                 System.out.println("Estilo não registrado. Tente novamente.");
             }
 
         }
+        TypesOfGroup typesOfGroup;
         while (true) {
             System.out.print("Tipo do grupo: ");
             var type = WRITE.nextLine();
             if(in.inTypePortuguese(type)){
-                TypesOfGroup typesOfGroup = TypesOfGroup.portugues(type);
+                typesOfGroup = TypesOfGroup.portugues(type);
                 break;
             } else if (in.inTypeEnglish(type)) {
-                TypesOfGroup typesOfGroup = TypesOfGroup.english(type);
+                typesOfGroup = TypesOfGroup.english(type);
                 break;
             }else {
                 System.out.println("Tipo de grupo não registrado.");
@@ -90,8 +99,8 @@ public class Main {
         }
 
 
-//        Ensemble newEnsemble = new Ensemble(name,);
-
+        Ensemble newEnsemble = new Ensemble(name, styles, typesOfGroup);
+        repository.save(newEnsemble);
     }
     //NEW ARTIST:
     private Artist newArtist(){
@@ -136,6 +145,44 @@ public class Main {
         double time = WRITE.nextDouble();
         WRITE.nextLine();
         return new Music(name,time);
+    }
+    //NEW ALBUM:
+    private void newAlbum(){
+        System.out.print("Nome do grupo ou artista: ");
+        var groupName = WRITE.nextLine();
+        Optional<Ensemble> foundGroup = repository.findByNameContainingIgnoreCase(groupName);
+        while (true) {
+            if (foundGroup.isPresent()) {
+                System.out.print("Nome do álbum: ");
+                var name = WRITE.nextLine();
+                while (true) {
+                    System.out.print("Data do lançamento do álbum (dd/MM/yyyy): ");
+                    var release = WRITE.nextLine();
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    try {
+                        LocalDate date = LocalDate.parse(release, dateFormatter);
+
+                        Album album = new Album(name,date);
+                        album.setEnsemble(foundGroup.get());
+                        foundGroup.get().getAlbums().add(album);
+                        repository.save(foundGroup.get());
+                        return;
+
+                    } catch (Exception e) {
+                        System.out.println("Formatação invalida, tente novamente.");
+                    }
+                }
+            } else {
+                System.out.println("Grupo ou Artista não encontrado.\n Cria novo grupo?");
+                var options = WRITE.nextLine();
+                if (options.contains("s") || options.contains("y")) {
+                    newEnsemble();
+                } else {
+                    System.out.println("Álbum retornará como null");
+                    return;
+                }
+            }
+        }
     }
 
 }

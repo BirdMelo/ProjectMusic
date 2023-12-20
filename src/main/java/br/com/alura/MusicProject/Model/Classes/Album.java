@@ -16,10 +16,9 @@ public class Album {
     @ManyToOne
     private Ensemble ensemble;
 
-    public Album(String name, LocalDate release, Ensemble ensemble){
+    public Album(String name, LocalDate release){
         this.name = name;
         this.release = release;
-        this.ensemble = ensemble;
     }
 
     public Album() {}

@@ -6,8 +6,9 @@ public enum Styles {
     SERTANEJO("Sertanejo"),
     COUNTRY("Country"),
     MPB("MPB"),
-    SAMBA("Samba");
-    private  String style;
+    SAMBA("Samba"),
+    REGGAE("Reggae");
+    private final String style;
     Styles(String style){
         this.style = style;
     }
