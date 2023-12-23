@@ -65,6 +65,7 @@ public class Main {
                     try {
                         System.out.print("Quantidade de artistas no grupo: ");
                         qGroup = WRITE.nextInt();
+                        WRITE.nextLine();
                         if (qGroup > 0) {
                             break;
                         }else {
@@ -75,9 +76,11 @@ public class Main {
                     }
                 }
                 for (int i = 0 ; i< qGroup ; i++){
+                    System.out.printf("=============== %d° artista ===============%n",i+1);
                     Artist artist = newArtist();
                     artistList.add(artist);
                 }
+                System.out.println("=============================================");
                 break;
 
             } else {
@@ -110,25 +113,46 @@ public class Main {
 
         Ensemble newEnsemble = new Ensemble(groupName, styles,type);
         newEnsemble.setMembers(artistList);
+        for (Artist artist : artistList) {
+            artist.setGroup(newEnsemble);
+        }
 
-        System.out.println(newEnsemble.getMembers());
-
-//        repository.save(newEnsemble);
-        System.out.println(newEnsemble);
+        repository.save(newEnsemble);
     }
     //NEW ARTIST:
     private Artist newArtist(){
-        System.out.print("Nome do artista: ");
-        var name = WRITE.nextLine();
 
-        System.out.print("Idade: ");
-        int old = WRITE.nextInt();
-        WRITE.nextLine();
-
-        System.out.print("Quantos instrumentos o(a) artista toca: ");
-        int plays = WRITE.nextInt();
-        WRITE.nextLine();
+//        Attributes:
+        String name;
+        int old;
         List<Instruments> instruments = new ArrayList<>();
+        int plays;
+
+//        Structure:
+        System.out.print("Nome do artista: ");
+        name = WRITE.nextLine();
+        while (true) {
+            try {
+                System.out.print("Idade: ");
+                old = WRITE.nextInt();
+                WRITE.nextLine();
+                break;
+            }catch (InputMismatchException e){
+                System.out.println("Digitação incorreta. Tente novamente");
+                WRITE.nextLine();
+            }
+        }
+        while (true) {
+            try {
+                System.out.print("Quantos instrumentos o(a) artista toca: ");
+                plays = WRITE.nextInt();
+                WRITE.nextLine();
+                break;
+            }catch (InputMismatchException e){
+                System.out.println("Digitação incorreta. Tente novamente");
+                WRITE.nextLine();
+            }
+        }
 
         for (int i = 0; i<plays; i++){
             while (true) {

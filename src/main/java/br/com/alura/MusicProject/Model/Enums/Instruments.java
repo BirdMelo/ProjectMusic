@@ -5,9 +5,10 @@ public enum Instruments {
     DRUMS("Drums","Bateria"),
     BASS("Bass","Baixo"),
     VOICE("Voice","Voz"),
-    ELETRIC_GUITAR("Eletric guitar","Guitarra");
-    private  String instrumentEn;
-    private  String instrumentPt;
+    ELETRIC_GUITAR("Eletric guitar","Guitarra"),
+    DJ("Dj","Toca discos");
+    private final String instrumentEn;
+    private final String instrumentPt;
     Instruments(String instrumentEn, String instrumentPt){
         this.instrumentEn = instrumentEn;
         this.instrumentPt = instrumentPt;
