@@ -26,9 +26,8 @@ public class Main {
         do {
             System.out.print("""
                     ==============================================
-                    1   - Registrar Artista solo
-                    2   - Registrar Grupo
-                    3   - Registrar Álbum
+                    1   - Registrar artista solo ou grupo
+                    2   - Registrar Álbum
                                     
                     0   - Sair do programa
                     
@@ -37,43 +36,67 @@ public class Main {
             WRITE.nextLine();
             switch (option){
                 case 1:
-                    addSoloArtist();
+                    newEnsemble();
                     break;
                 case 2:
-                    newEnsemble();
-                case 3:
                     newAlbum();
             }
         }while (option != 0);
     }
-
-    //SOLO ARTIST:
-    private void addSoloArtist(){
-        Artist artist = newArtist();
-
-        System.out.print("Estilo musical: ");
-        var style = WRITE.nextLine();
-
-        Ensemble ensemble = new Ensemble(artist.getName(), Styles.styles(style), TypesOfGroup.SOLO);
-        List<Artist> artists = new ArrayList<>();
-        artists.add(artist);
-        ensemble.setMembers(artists);
-        List<Ensemble> ensembles = new ArrayList<>();
-        ensembles.add(ensemble);
-        artist.setGroup(ensembles);
-
-        repository.save(ensemble);
-
-        Optional<Ensemble> foundGroup = repository.findByNameContainingIgnoreCase(ensemble.getName());
-        foundGroup.ifPresent(repository::save);
-    }
     //ENSEMBLE:
     private void newEnsemble(){
-        System.out.print("nome: ");
-        var name = WRITE.nextLine();
+        List<Artist> artistList = new ArrayList<>();
+        int qGroup;
+        String groupName;
+        while (true) {
+            System.out.println("Artista solo ou grupo?");
+            var option = WRITE.nextLine();
+            if (option.toLowerCase().contains("solo")) {
+                Artist artist = newArtist();
+                artistList.add(artist);
+                groupName = artist.getName();
+                qGroup = 1;
+                break;
+
+            } else if (option.toLowerCase().contains("grupo")) {
+                System.out.print("nome do grupo: ");
+                groupName = WRITE.nextLine();
+                while (true) {
+                    try {
+                        System.out.print("Quantidade de artistas no grupo: ");
+                        qGroup = WRITE.nextInt();
+                        if (qGroup > 0) {
+                            break;
+                        }else {
+                            System.out.println("Uma grupo não pode ter menos de 1 artista.");
+                        }
+                    }catch (NumberFormatException e){
+                        System.out.println("Por favor, digite números inteiros.");
+                    }
+                }
+                for (int i = 0 ; i< qGroup ; i++){
+                    Artist artist = newArtist();
+                    artistList.add(artist);
+                }
+                break;
+
+            } else {
+                System.out.println("Opção incorreta. tente novamente.");
+            }
+        }
+        TypesOfGroup type;
+        if (qGroup == 1){
+            type = TypesOfGroup.SOLO;
+        } else if (qGroup == 2) {
+            type = TypesOfGroup.DUET;
+        } else if (qGroup == 3) {
+            type = TypesOfGroup.TRIO;
+        }else {
+            type = TypesOfGroup.BAND;
+        }
         Styles styles;
         while (true) {
-            System.out.print("Estilo da banda: ");
+            System.out.print("Estilo do grupo ou artista: ");
             var style = WRITE.nextLine();
             if (in.inStyle(style)){
                 styles = Styles.styles(style);
@@ -83,28 +106,19 @@ public class Main {
             }
 
         }
-        TypesOfGroup typesOfGroup;
-        while (true) {
-            System.out.print("Tipo do grupo: ");
-            var type = WRITE.nextLine();
-            if(in.inTypePortuguese(type)){
-                typesOfGroup = TypesOfGroup.portugues(type);
-                break;
-            } else if (in.inTypeEnglish(type)) {
-                typesOfGroup = TypesOfGroup.english(type);
-                break;
-            }else {
-                System.out.println("Tipo de grupo não registrado.");
-            }
-        }
 
 
-        Ensemble newEnsemble = new Ensemble(name, styles, typesOfGroup);
-        repository.save(newEnsemble);
+        Ensemble newEnsemble = new Ensemble(groupName, styles,type);
+        newEnsemble.setMembers(artistList);
+
+        System.out.println(newEnsemble.getMembers());
+
+//        repository.save(newEnsemble);
+        System.out.println(newEnsemble);
     }
     //NEW ARTIST:
     private Artist newArtist(){
-        System.out.print("Nome: ");
+        System.out.print("Nome do artista: ");
         var name = WRITE.nextLine();
 
         System.out.print("Idade: ");

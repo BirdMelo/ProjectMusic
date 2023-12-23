@@ -15,8 +15,8 @@ public class Artist {
     @Column(unique = true)
     private String name;
     private int old;
-    @ManyToMany
-    private List<Ensemble> ensemble = new ArrayList<>();
+    @ManyToOne
+    private Ensemble ensemble;
     @Enumerated(EnumType.STRING)
     private List<Instruments> instruments = new ArrayList<>();
 
@@ -48,11 +48,11 @@ public class Artist {
         this.old = old;
     }
 
-    public List<Ensemble> getGroup() {
+    public Ensemble getGroup() {
         return ensemble;
     }
 
-    public void setGroup(List<Ensemble> ensemble) {
+    public void setGroup(Ensemble ensemble) {
         this.ensemble = ensemble;
     }
 
@@ -79,6 +79,6 @@ public class Artist {
                 """,
                 getName(),getOld(),
                 Service.listName(instruments, Instruments::name),
-                Service.listName(ensemble, Ensemble::getName));
+                getGroup().getName());
     }
 }

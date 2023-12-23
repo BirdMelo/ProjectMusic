@@ -18,9 +18,9 @@ public class Ensemble {
     private Styles styles;
     @Enumerated(EnumType.STRING)
     private TypesOfGroup typesOfGroup;
-    @ManyToMany(mappedBy = "ensemble",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "ensemble",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Artist> members = new ArrayList<>();
-    @OneToMany(mappedBy = "ensemble")
+    @OneToMany(mappedBy = "ensemble",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Album> albums = new ArrayList<>();
 
     public Ensemble(String name, Styles styles, TypesOfGroup typesOfGroup){
