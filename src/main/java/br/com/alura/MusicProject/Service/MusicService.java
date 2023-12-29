@@ -1,4 +1,4 @@
-package br.com.alura.MusicProject.Main;
+package br.com.alura.MusicProject.Service;
 
 
 import br.com.alura.MusicProject.Model.Classes.Album;
@@ -8,43 +8,61 @@ import br.com.alura.MusicProject.Model.Classes.Music;
 import br.com.alura.MusicProject.Model.Enums.Instruments;
 import br.com.alura.MusicProject.Model.Enums.Styles;
 import br.com.alura.MusicProject.Model.Enums.TypesOfGroup;
-import br.com.alura.MusicProject.Repository.MusicRepository;
-import br.com.alura.MusicProject.Service.Service;
+import br.com.alura.MusicProject.Repositorys.AlbumRepository;
+import br.com.alura.MusicProject.Repositorys.EnsembleRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class Main {
+public class MusicService {
     private final Scanner WRITE = new Scanner(System.in);
-    private final MusicRepository repository;
+    private final EnsembleRepository eRepository;
+    private final AlbumRepository aRepository;
     public Service in = new Service();
-    public Main (MusicRepository repository){this.repository = repository;}
-
-    public void showMenu(){
-        int option;
-        do {
-            System.out.print("""
-                    ==============================================
-                    1   - Registrar artista solo ou grupo
-                    2   - Registrar Álbum
-                                    
-                    0   - Sair do programa
-                    
-                    Digite:\s""");
-            option = WRITE.nextInt();
-            WRITE.nextLine();
-            switch (option){
-                case 1:
-                    newEnsemble();
-                    break;
-                case 2:
-                    newAlbum();
-            }
-        }while (option != 0);
+    public MusicService(EnsembleRepository eRepository, AlbumRepository aRepository){
+        this.eRepository = eRepository;
+        this.aRepository = aRepository;
     }
-    //ENSEMBLE:
-    private void newEnsemble(){
+
+//    ADD MUSIC:
+    public void addMusic(){
+        while (true) {
+            System.out.print("Nome conjunto: ");
+            var nameOfEnsemble = WRITE.nextLine();
+            Optional<Ensemble> ensemble = eRepository.findByNameContainingIgnoreCase(nameOfEnsemble);
+            if (ensemble.isPresent()) {
+                System.out.print("Nome do album: ");
+                var nameOfAlbum = WRITE.nextLine();
+                Optional<Album> foundAlbum = eRepository.findAlbum(nameOfEnsemble, nameOfAlbum);
+                if (foundAlbum.isPresent()) {
+                    System.out.print("Quantidade de musicas: ");
+                    int qMusic = WRITE.nextInt();
+                    WRITE.nextLine();
+                    for (int i = 0; i < qMusic; i++) {
+                        System.out.printf("=============== %d° música ===============%n", i + 1);
+                        Music music = newMusic();
+                        music.setAlbum(foundAlbum.get());
+                        foundAlbum.get().getMusics().add(music);
+
+                        aRepository.save(foundAlbum.get());
+                    }
+                    System.out.println("==========================================");
+                    break;
+                }else {
+                    System.out.println("Nome do album está incorreto ou não consta no Banco de dados.\n " +
+                            "Tente novamente.");
+                }
+            }else {
+                System.out.println("Nome do artista ou grupo está incorreto ou não consta no Banco de dados.\n " +
+                        "Tente novamente.");
+            }
+        }
+
+    }
+//    ENSEMBLE:
+    public void newEnsemble(){
         List<Artist> artistList = new ArrayList<>();
         int qGroup;
         String groupName;
@@ -117,9 +135,9 @@ public class Main {
             artist.setGroup(newEnsemble);
         }
 
-        repository.save(newEnsemble);
+        eRepository.save(newEnsemble);
     }
-    //NEW ARTIST:
+//    NEW ARTIST:
     private Artist newArtist(){
 
 //        Attributes:
@@ -175,20 +193,20 @@ public class Main {
         }
         return new Artist(name,old,instruments);
     }
-    //NEW MUSIC:
+//    NEW MUSIC:
     private Music newMusic(){
         System.out.print("Nome da musica: ");
-        var name = WRITE.nextLine();
+        var name = WRITE.nextLine().replace("'","’");
         System.out.print("Tempo da musica: ");
         double time = WRITE.nextDouble();
         WRITE.nextLine();
         return new Music(name,time);
     }
-    //NEW ALBUM:
-    private void newAlbum(){
+//    NEW ALBUM:
+    public void newAlbum(){
         System.out.print("Nome do grupo ou artista: ");
         var groupName = WRITE.nextLine();
-        Optional<Ensemble> foundGroup = repository.findByNameContainingIgnoreCase(groupName);
+        Optional<Ensemble> foundGroup = eRepository.findByNameContainingIgnoreCase(groupName);
         while (true) {
             if (foundGroup.isPresent()) {
                 System.out.print("Nome do álbum: ");
@@ -203,7 +221,24 @@ public class Main {
                         Album album = new Album(name,date);
                         album.setEnsemble(foundGroup.get());
                         foundGroup.get().getAlbums().add(album);
-                        repository.save(foundGroup.get());
+
+                        System.out.println("Deseja adicionar musicas ao album?");
+                        var option = WRITE.nextLine();
+                        if (option.contains("s") || option.contains("y")){
+                            System.out.println("Quantas musicas?");
+                            int qMusic = WRITE.nextInt();
+                            WRITE.nextLine();
+                            List<Music> musicList = new ArrayList<>();
+                            for (int i = 0; i < qMusic; i++ ){
+                                System.out.printf("=============== %d° música ===============%n",i+1);
+                                Music music = newMusic();
+                                music.setAlbum(album);
+                                musicList.add(music);
+                            }
+                            System.out.println("=========================================");
+                            album.setMusics(musicList);
+                        }
+                        eRepository.save(foundGroup.get());
                         return;
 
                     } catch (Exception e) {
@@ -222,5 +257,37 @@ public class Main {
             }
         }
     }
+//    SEARCH MUSIC:
+    public void searchMusic() {
+        System.out.print("Nome da música: ");
+        var musicName = WRITE.nextLine();
+        List<Music> musicList = aRepository.findMusic(musicName);
+        if (!musicList.isEmpty()) {
+            musicList.forEach(System.out::println);
+        }else {
+            System.out.println("Não foi encontrado nem uma música com esse nome ou fragmento.");
+        }
 
+    }
+//    SEARCH ALBUM:
+    public void searchAlbumByEnsemble() {
+        System.out.print("Nome do grupo ou artista solo: ");
+        String ensembleName = WRITE.nextLine();
+        List<Album> albums = eRepository.findAlbumByEnsembleName(ensembleName);
+        albums.forEach(System.out::println);
+    }
+
+    public void searchMusicByEnsemble() {
+        System.out.print("Nome do grupo ou artista solo: ");
+        String ensembleName = WRITE.nextLine();
+        List<Album> albums = eRepository.findAlbumByEnsembleName(ensembleName);
+        albums.stream()
+                .sorted(Comparator.comparing(Album::getRelease))
+                .forEach(album -> {
+                    System.out.printf("""
+                                            %s
+                            """, album.getName());
+                    album.getMusics().forEach(System.out::println);
+                });
+    }
 }

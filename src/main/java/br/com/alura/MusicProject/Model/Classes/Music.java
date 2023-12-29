@@ -37,10 +37,9 @@ public class Music {
         return String.format("""
                 ==============================
                 Nome: %s
-                Tempo: %.1f
+                Tempo: %.1fs
                 Album: %s
                 ==============================
-                
-                """,getName(),getTime(),getAlbum());
+                """,getName(),getTime(),getAlbum().getName());
     }
 }

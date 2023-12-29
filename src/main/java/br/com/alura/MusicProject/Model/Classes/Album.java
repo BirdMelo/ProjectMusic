@@ -1,8 +1,10 @@
 package br.com.alura.MusicProject.Model.Classes;
 
+import br.com.alura.MusicProject.Service.Service;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 @Entity
 public class Album {
@@ -11,8 +13,8 @@ public class Album {
     private int id;
     private String name;
     private LocalDate release;
-    @OneToMany(mappedBy = "album")
-    private List<Music> musics;
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Music> musics = new ArrayList<>();
     @ManyToOne
     private Ensemble ensemble;
 
@@ -70,6 +72,7 @@ public class Album {
                 Musicas: %s
                 =================================
                 
-                """,getName(),getEnsemble(),getRelease(),getMusics());
+                """,getName(),getEnsemble().getName(),getRelease(),
+                Service.listName(musics, Music::getName));
     }
 }
